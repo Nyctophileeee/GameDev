@@ -7,22 +7,36 @@ using Unity.VisualScripting;
 
 public class NewBehaviourScript : MonoBehaviour
 {
+    [Header("Questions")]
     [SerializeField] TextMeshProUGUI questionText;
     [SerializeField] QuestionSO question;
+
+    [Header("Answer Buttons")]
     [SerializeField] GameObject[] answerButtons;
+    int correctAnswerIndex;
+
+    [Header("Button Color")]
     [SerializeField] Sprite defaultColorSprite;
     [SerializeField] Sprite correctColorSprite;
-    int correctAnswerIndex;
-    
-    
 
+    [Header("Timer")]
+    [SerializeField] Image timerImage;
+    Timer timer;
+    
+    
     void Start()
+    {   
+        timer = FindObjectOfType<Timer>();
+        GetNextQuestion();
+    }
+
+    void Update()
     {
-        questionText.text = question.GetQuestion();
-        for(int i = 0; answerButtons.Length > i; i++)
+        timerImage.fillAmount = timer.fillFraction;
+        if(timer.loadNextQuestion)
         {
-            TextMeshProUGUI buttonText = answerButtons[i].GetComponentInChildren<TextMeshProUGUI>();
-            buttonText.text = question.GetAnswer(i);
+            GetNextQuestion();
+            timer.loadNextQuestion = false;
         }
     }
 
@@ -42,5 +56,45 @@ public class NewBehaviourScript : MonoBehaviour
             Image temporaryColor = answerButtons[question.GetCorrectAnswerIndex()].GetComponent<Image>();
             temporaryColor.sprite = correctColorSprite;
         }
+        SetButtonState(false);
+        timer.CancelTimer();
     }
-}
+
+    void GetNextQuestion()
+    {
+        SetButtonState(true);
+        SetDefaultButtonSprite();
+        DisplayQuestion();
+    }
+
+
+    void DisplayQuestion()
+    {
+        questionText.text = question.GetQuestion();
+        for(int i = 0; answerButtons.Length > i; i++)
+        {
+            TextMeshProUGUI buttonText = answerButtons[i].GetComponentInChildren<TextMeshProUGUI>();
+            buttonText.text = question.GetAnswer(i);
+        }
+    }
+
+    void SetButtonState(bool state)
+    {
+        for(int i = 0; i < answerButtons.Length; i++)
+        {
+            Button ansButton = answerButtons[i].GetComponent<Button>();
+            ansButton.interactable = state;
+        }
+    }
+
+    void SetDefaultButtonSprite()
+    {
+        for(int i = 0; i < answerButtons.Length; i++)
+        {
+            Image imgButton = answerButtons[i].GetComponent<Image>();
+            imgButton.sprite = defaultColorSprite;
+        }
+    }
+
+
+}   
